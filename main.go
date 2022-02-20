@@ -12,15 +12,12 @@ import (
 )
 
 type User struct{
+	Id string `json:"id"`
 	Name string `json:"name"`
 	Email string `json:"user_email"`
  	Password string `jason:"password"`
 }
-type MyInfo struct{
-	Id string `json:"id"`
-	Name string `json:"name"`
 
-}
 
 type Post struct{
 	Userid string `json:"id"`
@@ -146,7 +143,8 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 
 
 	func login(w http.ResponseWriter, r *http.Request) {  
-		result, err := db.Prepare("SELECT ID, first_name FROM users WHERE email=? AND password=?")
+		stmt, err := db.Prepare("SELECT ID, first_name, FROM users WHERE email=? AND password=?")
+		var users []User
 		  if err != nil {
 			panic(err.Error())
 		  }  
@@ -160,18 +158,20 @@ func signUp(w http.ResponseWriter, r *http.Request) {
 		  password := keyVal["password"]
 
 
-		  _, err = result.Exec(email, password)
-		 // var info MyInfo
-		//   var info MyInfo
-		//   for result.Next() {
-	  
-		// 	err := result.Scan(&info.Id)
-		// 	if err != nil {
-		// 	  panic(err.Error())
-		// 	}
-	  
-		//   }
-		//   json.NewEncoder(w).Encode(id)
+			result, err := stmt.Query(email, password)
+			if err != nil {
+				panic(err.Error())
+			  } 
+
+			  for result.Next() {
+				var user User
+				err := result.Scan(&user.Id,&user.Name)
+				if err != nil {
+				  panic(err.Error())
+				}
+				users = append(users, user)
+			  }
+			  json.NewEncoder(w).Encode(users)
 
 		} 
 // func getPosts(w http.ResponseWriter, r *http.Request) {
